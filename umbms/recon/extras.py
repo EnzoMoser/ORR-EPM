@@ -41,6 +41,7 @@ def get_pix_xys(m_size, roi_rho):
     # Define the x/y points on each axis
     xs = np.linspace(-roi_rho, roi_rho, m_size)
     ys = np.linspace(roi_rho, -roi_rho, m_size)
+
     # Cast these to 2D for ease later
     x_dists, y_dists = np.meshgrid(xs, ys)
 
@@ -141,8 +142,10 @@ def get_pix_ds(ant_rho, m_size, roi_rad, n_ant_pos=72,
     # Get antenna x/y positions during scan
     ant_xs, ant_ys = get_ant_scan_xys(ant_rho=ant_rho, n_ants=n_ant_pos,
                                       ini_a_ang=ini_ant_ang)
+
     # Create arrays of pixel x/y positions
     pix_xs, pix_ys = get_pix_xys(m_size=m_size, roi_rho=roi_rad)
+
     # Init array for storing pixel time-delays
     p_ds = np.zeros([n_ant_pos, m_size, m_size])
 
@@ -151,13 +154,11 @@ def get_pix_ds(ant_rho, m_size, roi_rad, n_ant_pos=72,
         # Find x/y position differences of each pixel from antenna
         x_diffs = pix_xs - ant_xs[a_pos]
         y_diffs = pix_ys - ant_ys[a_pos]
+
         # Calculate one-way time-delay of propagation from antenna to
         # each pixel
-        dist = np.sqrt(x_diffs ** 2 + y_diffs ** 2)
         p_ds[a_pos, :, :] = np.sqrt(x_diffs ** 2 + y_diffs ** 2)
-        #with np.printoptions(threshold=np.inf):
-        #    print( "Hi", p_ds[a_pos, 1, 1] )
-        #    print( "Bye", dist[1, 1] )
+
     return p_ds
 
 

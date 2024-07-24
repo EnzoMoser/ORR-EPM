@@ -133,6 +133,8 @@ if __name__ == "__main__":
     all_dmas_fib = []
     all_orr_fib = []
 
+    eps_0 = 8.85e-12  # Vacuum permittivity
+
     step_size = 0.3  # Select the step size for ORR reconstruction
 
     # Init lists for storing metadata
@@ -233,7 +235,6 @@ if __name__ == "__main__":
             speed = estimate_speed(adi_rad=adi_rad,
                                    ant_rho=ant_rad,
                                    )
-            print("Speed = ", speed)
 
             # Get the one-way propagation times for each pixel,
             # for each antenna position
@@ -251,7 +252,7 @@ if __name__ == "__main__":
                                * 2 * np.pi * recon_fs[:, None, None, None]
                                * pix_ts[None, :, :, :]
                                )
-            print("Phase", phase_fac[0:3, 0:3, 0:3, 0:3])
+
             # Define phase factor for DMAS
             dmas_fac = np.exp(-1j * 2 * np.pi * pix_ts)
 
@@ -260,7 +261,6 @@ if __name__ == "__main__":
 
             # Subtract reference
             adi_cal_cropped = (tar_fd - adi_fd)
-            print("ADI_CROP", np.shape(adi_cal_cropped))
 
             # If the scan does include a tumour
             if ~np.isnan(tar_md['tum_diam']):
