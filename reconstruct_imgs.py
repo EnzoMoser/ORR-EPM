@@ -69,72 +69,6 @@ __ADI_RADS = {
 
 ###############################################################################
 
-
-def get_mat_perms(f_str):
-    """Load material permittivities
-
-    Parameters
-    ----------
-    f_str : str
-        Path to material property file
-
-    Returns
-    -------
-    fs : array_like
-        Frequencies at which measurement was made
-    perms : array_like
-        Material permittivities
-    conds : array_like
-        Material conductivities, in [S/m]
-    """
-
-    csv_data = np.genfromtxt(fname=f_str,
-                             skip_header=10,
-                             dtype=float,
-                             delimiter=',')
-
-    fs = csv_data[:, 0] * 1e6  # Convert from [MHz] to [Hz]
-    perms = csv_data[:, 1]
-    conds = csv_data[:, 3]
-
-    return fs, perms, conds
-
-
-def interp_perms(data_fs, perms, conds, tar_fs):
-    """Interpolate measured permittivity to a set of target freqs
-
-    Parameters
-    ----------
-    data_fs : array_like
-        Frequencies at which measured perms/conds are defined
-    perms : array_like
-        Measured real part of the relative permittivity
-    conds : array_like
-        Measured conductivity, [S/m]
-    tar_fs : array_like
-        Target frequencies
-
-    Returns
-    -------
-    interp_perms : array_like
-        Interpolated permittivities
-    interp_conds : array_like
-        Interpolated conductivities, in [S/m]
-    """
-
-    interp_perms = np.interp(x=tar_fs,
-                            xp=data_fs,
-                            fp=perms)
-    interp_conds = np.interp(x=tar_fs,
-                             xp=data_fs,
-                             fp=conds)
-
-    return interp_perms, interp_conds
-
-
-###############################################################################
-
-
 if __name__ == "__main__":
 
     logger = get_script_logger(__file__)
@@ -167,20 +101,7 @@ if __name__ == "__main__":
     s11 = s11[:, tar_fs, :]  # Keep only target frequencies
     s11 = s11[:, ::12, :]  # Down-sample for computation benefit
 
-    # Load glycerin DAK dielectric data
-    #gly_fs, gly_eps, gly_conds = get_mat_perms(
-    #    f_str=os.path.join(
-    #        get_proj_path(), 'data/dielectrics/glycerin.csv'
-    #    ),
-    #)
-
-    # Interpolate to the scan frequencies
-    #gly_eps, gly_conds = interp_perms(data_fs=gly_fs,
-    #                                  perms=gly_eps,
-    #                                  conds=gly_conds,
-    #                                  tar_fs=recon_fs)
-
-    n_expts = 1 #len(md)  # Find number of expts
+    n_expts = 1 #len(md)  # The number of scans to work on
 
     # Get the unique ID of each experiment / scan
     expt_ids = [mm['id'] for mm in md]
@@ -191,26 +112,10 @@ if __name__ == "__main__":
     fib_ref_ids = [mm['fib_ref_id'] for mm in md]
 
     # List of physics enhanced modelling factors to use
-    phys_enhancements = [
-        # 'beam',
-        # 'spherical',
-        # 'gain',
-        # 'sec_scat',
-        # 'complex_k',
-        # 'speed',
-    ]
+    phys_enhancements = []
 
-    if len(phys_enhancements) >= 1:  # If using some enhancements...
-
-        # The output dir, where the reconstructions will be stored
-        out_dir = os.path.join(__O_DIR, '-'.join(phys_enhancements)
-                               + "-median/")
-        verify_path(out_dir)
-
-    else:  # If not using enhancements...
-
-        out_dir = os.path.join(__O_DIR, "base-median-adi-rads/")
-        verify_path(out_dir)
+    out_dir = os.path.join(__O_DIR, "base-median-adi-rads/")
+    verify_path(out_dir)
 
     # Define output dir for adipose and healthy references
     adi_o_dir = os.path.join(out_dir, 'adi/')
@@ -230,7 +135,7 @@ if __name__ == "__main__":
 
     eps_0 = 8.85e-12  # Vacuum permittivity
 
-    step_size = 0.3  # Select the step size
+    step_size = 0.3  # Select the step size for ORR reconstruction
 
     # Init lists for storing metadata
     adi_md_to_save = []
@@ -331,153 +236,22 @@ if __name__ == "__main__":
                                    ant_rho=ant_rad,
                                    )
 
-            # If *not* using path-dependent time-delay modelling
-            if not ('speed' in phys_enhancements):
+            # Get the one-way propagation times for each pixel,
+            # for each antenna position
+            pix_ts = get_pix_ts(ant_rho=ant_rad,
+                                m_size=__M_SIZE,
+                                roi_rad=__ROI_RAD,
+                                speed=speed
+                                )
 
-                # Get the one-way propagation times for each pixel,
-                # for each antenna position
-                pix_ts = get_pix_ts(ant_rho=ant_rad,
-                                    m_size=__M_SIZE,
-                                    roi_rad=__ROI_RAD,
-                                    speed=speed
-                                    )
+            # Apply the antenna time delay
+            pix_ts = apply_ant_t_delay(pix_ts=pix_ts)
 
-                # Apply the antenna time delay
-                pix_ts = apply_ant_t_delay(pix_ts=pix_ts)
-
-                # Get the phase factor for efficient computation
-                phase_fac = np.exp(-1j
-                                   * 2 * np.pi * recon_fs[:, None, None, None]
-                                   * pix_ts[None, :, :, :]
-                                   )
-
-            # If using 'speed' and 'complex_k' enhancements
-            elif (('speed' in phys_enhancements)
-                  and ('complex_k' in phys_enhancements)):
-
-                workers = mp.Pool(10)  # Workers for parallel processing
-
-                # Get complex frequency-dependent propagation constant k
-                k = 2 * np.pi * recon_fs * np.sqrt(
-                    gly_eps - 1j * gly_conds / (2 * np.pi * recon_fs * eps_0)
-                ) / __C
-
-                # Calculate 1-way phase factors *NOTE: Without
-                # antenna t-delay
-                phase_factors = get_phase_fac_partitioned(
-                    ant_rho=ant_rad,
-                    m_size=__M_SIZE,
-                    roi_rho=__ROI_RAD,
-                    air_k=2 * np.pi * recon_fs / __C,
-                    breast_k=k,
-                    ini_a_ang=-136.0,
-                    adi_rad=adi_rad,
-                    phant_x=0,
-                    phant_y=0,
-                    worker_pool=workers
-                )
-
-                # For DMAS
-                pix_ts = phase_factors
-
-                # Define the phase factor using calculated
-                # phase factors *and* account for the 1-way antenna
-                # time delay of 0.19 ns
-                phase_fac = (np.exp(-1j * phase_factors)
-                             * np.exp(-1j * 2 * np.pi
-                                      * recon_fs[:, None, None, None]
-                                      * 0.19e-9
-                                      )
-                             )
-
-            # If using 'speed' but NOT 'complex_k' enhancements
-            elif (('speed' in phys_enhancements)
-                  and not ('complex_k' in phys_enhancements)):
-
-                workers = mp.Pool(10)  # Workers for parallel processing
-
-                # Retain only the real part of k
-                k = np.real(2 * np.pi * recon_fs * np.sqrt(
-                    gly_eps - 1j * gly_conds / (2 * np.pi * recon_fs * eps_0)
-                ) / __C)
-
-                # Calculate 1-way phase factors *NOTE: Without
-                # antenna t-delay
-                phase_factors = get_phase_fac_partitioned(
-                    ant_rho=ant_rad,
-                    m_size=__M_SIZE,
-                    roi_rho=__ROI_RAD,
-                    air_k=2 * np.pi * recon_fs / __C,
-                    breast_k=k,
-                    ini_a_ang=-136.0,
-                    adi_rad=adi_rad,
-                    phant_x=0,
-                    phant_y=0,
-                    worker_pool=workers
-                )
-
-                # For DMAS
-                pix_ts = phase_factors
-
-                # Define the phase factor using calculated
-                # phase factors *and* account for the 1-way antenna
-                # time delay of 0.19 ns
-                phase_fac = (np.exp(-1j * phase_factors)
-                             * np.exp(-1j * 2 * np.pi
-                                      * recon_fs[:, None, None, None]
-                                      * 0.19e-9
-                                      )
-                             )
-
-            else:  # If using only 'complex_k' enhancement
-
-                # Get adipose / air areas
-                adi_area = np.pi * adi_rad ** 2
-                scan_area = np.pi * ant_rad ** 2
-
-                # Determine average permittivity and conductivity based
-                # on areas *at each frequency*
-                avg_perm = (adi_area * gly_eps
-                            + 1 * (scan_area - adi_area)) / scan_area
-                avg_cond = (adi_area * gly_conds
-                            + 0 * (scan_area - adi_area)) / scan_area
-
-                # Get complex propagation constant k
-                k = 2 * np.pi * recon_fs * np.sqrt(
-                    avg_perm - 1j * avg_cond / (2 * np.pi * recon_fs * eps_0)
-                ) / __C
-
-                # Get the map of pixel distances, convert from
-                # [cm] to [m]
-                pix_ds = get_pix_ds(ant_rho=ant_rad,
-                                    m_size=__M_SIZE,
-                                    roi_rad=__ROI_RAD,
-                                    ini_ant_ang=-136.0) / 100
-
-                alpha = -2 * np.imag(k)  # Get attenuation parameter
-
-                # Get the one-way propagation times for each pixel,
-                # for each antenna position
-                pix_ts = get_pix_ts(ant_rho=ant_rad,
-                                    m_size=__M_SIZE,
-                                    roi_rad=__ROI_RAD,
-                                    speed=speed
-                                    )
-
-                # Apply the antenna time delay
-                pix_ts = apply_ant_t_delay(pix_ts=pix_ts)
-
-                # Get phase factor
-                phase_fac = (
-                    np.exp(-alpha[:, None, None, None]
-                           * pix_ds[None, :, :, ]
-                           * 0.5  # To account for squaring inside orr
-                           )
-                    * np.exp(-1j
-                             * 2 * np.pi * recon_fs[:, None, None, None]
-                             * pix_ts[None, :, :, :]
-                             )
-                )
+            # Get the phase factor for efficient computation
+            phase_fac = np.exp(-1j
+                               * 2 * np.pi * recon_fs[:, None, None, None]
+                               * pix_ts[None, :, :, :]
+                               )
 
             # Define phase factor for DMAS
             dmas_fac = np.exp(-1j * 2 * np.pi * pix_ts)
