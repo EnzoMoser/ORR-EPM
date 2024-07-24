@@ -61,7 +61,7 @@ def verify_path(path):
     """
 
     if not os.path.isdir(path):  # If the path does not exist
-        os.mkdir(path)  # Make it exist
+        os.makedirs(path)  # Make it exist
 
     else:  # If the path exists
         pass  # Do nothing

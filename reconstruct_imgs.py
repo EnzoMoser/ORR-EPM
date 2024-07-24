@@ -39,7 +39,7 @@ from umbms.tdelay.partitioned import get_phase_fac_partitioned
 __D_DIR = os.path.join(get_proj_path(), '../um_bmid/datasets/gen-three/simple-clean/python-data/')
 
 # Output dir for saving
-__O_DIR = os.path.join(get_proj_path(), "output/orr/g3/")
+__O_DIR = os.path.join(get_proj_path(), "output/gen-three/")
 verify_path(__O_DIR)
 
 # The frequency parameters from the scan
@@ -533,9 +533,6 @@ if __name__ == "__main__":
                          )
                 logger.info("\t\tFinished DAS in %.1f sec."
                             % (time.time() - das_t0))
-                print("Showing....")
-                time.sleep(20)
-                print("DONE SHOWING")
 
             if do_dmas:  # If doing DMAS reconstructions
 

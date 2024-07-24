@@ -25,7 +25,6 @@ def init_plt(figsize=(12, 6), labelsize=18):
     """
 
     plt.figure(figsize=figsize)
-    plt.rc('font', family='Times New Roman')
     plt.tick_params(labelsize=labelsize)
 
 
@@ -52,7 +51,6 @@ def plt_sino(fd, title, save_str, out_dir, cbar_fmt='%.2e',
 
     # Plot primary scatter forward projection only
     plt.figure()
-    plt.rc('font', family='Times New Roman')
     plt.imshow(np.abs(td), aspect=plt_aspect_ratio, cmap='inferno',
                extent=plt_extent)
     plt.colorbar(format=cbar_fmt).ax.tick_params(labelsize=16)
@@ -81,7 +79,6 @@ def plt_fd_sino(fd, title, fs, save_str, out_dir, cbar_fmt='%.2e',
 
     # Plot primary scatter forward projection only
     plt.figure()
-    plt.rc('font', family='Times New Roman')
     plt.imshow(fd, aspect=plt_aspect_ratio, cmap='inferno',
                extent=plt_extent,
                # vmin=0, vmax=1,

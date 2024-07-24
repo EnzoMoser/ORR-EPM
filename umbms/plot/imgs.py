@@ -105,8 +105,6 @@ def plot_img(img, tar_xs=None, tar_ys=None, tar_rads=None,
     # Bounds for x/y axes ticks in plt
     tick_bounds = [-roi_rho, roi_rho, -roi_rho, roi_rho]
 
-    # Set the font to times new roman
-    plt.rc('font', family='Times New Roman')
     plt.figure()  # Make the figure window
 
     # Set the size of the axis tick labels

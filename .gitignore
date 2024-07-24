@@ -19,4 +19,3 @@ umbms/**/*.log
 .pydevproject
 .settings/
 .stversions/
-output/

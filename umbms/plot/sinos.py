@@ -83,8 +83,6 @@ def plot_sino(td_data, ini_t, fin_t, title='',
     # Make the figure for displaying the reconstruction
     plt.figure()
 
-    # Declare the default font for our figure to be Times New Roman
-    plt.rc('font', family='Times New Roman')
 
     # If the user wanted to normalize the data, make our imshow() and
     # set the colorbar() bounds using vmin, vmax
