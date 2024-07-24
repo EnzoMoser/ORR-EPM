@@ -25,7 +25,7 @@ warnings.filterwarnings('ignore', 'divide by zero encountered in scalar divide')
 
 ###############################################################################
 
-__D_DIR = os.path.join(get_proj_path(), 'data/umbmid/g3/')
+__D_DIR = os.path.join(get_proj_path(), '../um_bmid/datasets/gen-three/simple-clean/python-data/')
 
 # Output dir for saving
 __O_DIR = os.path.join(get_proj_path(), "output/orr/g3/")
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     do_fib_ref = False
 
     # Load the frequency-domain S11 and metadata
-    s11 = load_pickle(os.path.join(__D_DIR, 'g3_s11.pickle'))
+    s11 = load_pickle(os.path.join(__D_DIR, 'fd_data_gen_three_s11.pickle'))
 
     orr_str = "beam-spherical-gain-complex_k-median"
     orr_str_speed = "beam-spherical-gain-complex_k-speed-median"
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         img_to_plt = all_imgs[ii] * np.ones_like(all_imgs[ii])
 
         img_to_plt = np.abs(img_to_plt) / norm_facs[ii]
-        img_to_plt[~roi] = np.NaN
+        img_to_plt[~roi] = np.nan
 
         ax.imshow(np.abs(img_to_plt),
                   cmap='inferno',
@@ -409,7 +409,7 @@ if __name__ == "__main__":
         img_to_plt = all_imgs[ii] * np.ones_like(all_imgs[ii])
 
         img_to_plt = np.abs(img_to_plt) / norm_facs[ii]
-        img_to_plt[~roi] = np.NaN
+        img_to_plt[~roi] = np.nan
 
         ax.imshow(np.abs(img_to_plt),
                   cmap='inferno',
@@ -589,7 +589,7 @@ if __name__ == "__main__":
         img_to_plt = all_imgs[ii] * np.ones_like(all_imgs[ii])
 
         img_to_plt = np.abs(img_to_plt) / norm_facs[ii]
-        img_to_plt[~roi] = np.NaN
+        img_to_plt[~roi] = np.nan
 
         ax.imshow(np.abs(img_to_plt),
                   cmap='inferno',

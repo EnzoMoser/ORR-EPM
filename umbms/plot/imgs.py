@@ -93,7 +93,7 @@ def plot_img(img, tar_xs=None, tar_ys=None, tar_rads=None,
                                       arr_rho=roi_rho)
 
         # Set the pixels outside the antenna trajectory to NaN
-        img_to_plt[np.logical_not(in_roi)] = np.NaN
+        img_to_plt[np.logical_not(in_roi)] = np.nan
 
     # Define angles for plot the tissue geometry
     draw_angs = np.linspace(0, 2 * np.pi, 1000)

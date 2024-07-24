@@ -36,7 +36,7 @@ from umbms.tdelay.partitioned import get_phase_fac_partitioned
 ###############################################################################
 
 # Directory to load UM-BMID Gen-3 data
-__D_DIR = os.path.join(get_proj_path(), 'data/umbmid/g3/')
+__D_DIR = os.path.join(get_proj_path(), '../um_bmid/datasets/gen-three/simple-clean/python-data/')
 
 # Output dir for saving
 __O_DIR = os.path.join(get_proj_path(), "output/orr/g3/")
@@ -141,15 +141,15 @@ if __name__ == "__main__":
 
     # Flags for doing DAS / DMAS / ORR reconstructions
     do_das = True
-    do_dmas = True
-    do_orr = True
+    do_dmas = False
+    do_orr = False
 
     # If True, ORR will use GPU for computation
     orr_use_gpu = False
 
     # Load the frequency-domain S11 and metadata
-    s11 = load_pickle(os.path.join(__D_DIR, 'g3_s11.pickle'))
-    md = load_pickle(os.path.join(__D_DIR, 'g3_md.pickle'))
+    s11 = load_pickle(os.path.join(__D_DIR, 'fd_data_gen_three_s11.pickle'))
+    md = load_pickle(os.path.join(__D_DIR, 'metadata_gen_three.pickle'))
 
     # Get the scan IDs
     scan_ids = np.array([ii['id'] for ii in md])
@@ -168,19 +168,19 @@ if __name__ == "__main__":
     s11 = s11[:, ::12, :]  # Down-sample for computation benefit
 
     # Load glycerin DAK dielectric data
-    gly_fs, gly_eps, gly_conds = get_mat_perms(
-        f_str=os.path.join(
-            get_proj_path(), 'data/dielectrics/glycerin.csv'
-        ),
-    )
+    #gly_fs, gly_eps, gly_conds = get_mat_perms(
+    #    f_str=os.path.join(
+    #        get_proj_path(), 'data/dielectrics/glycerin.csv'
+    #    ),
+    #)
 
     # Interpolate to the scan frequencies
-    gly_eps, gly_conds = interp_perms(data_fs=gly_fs,
-                                      perms=gly_eps,
-                                      conds=gly_conds,
-                                      tar_fs=recon_fs)
+    #gly_eps, gly_conds = interp_perms(data_fs=gly_fs,
+    #                                  perms=gly_eps,
+    #                                  conds=gly_conds,
+    #                                  tar_fs=recon_fs)
 
-    n_expts = len(md)  # Find number of expts
+    n_expts = 1 #len(md)  # Find number of expts
 
     # Get the unique ID of each experiment / scan
     expt_ids = [mm['id'] for mm in md]
@@ -533,6 +533,9 @@ if __name__ == "__main__":
                          )
                 logger.info("\t\tFinished DAS in %.1f sec."
                             % (time.time() - das_t0))
+                print("Showing....")
+                time.sleep(20)
+                print("DONE SHOWING")
 
             if do_dmas:  # If doing DMAS reconstructions
 
