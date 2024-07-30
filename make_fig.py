@@ -76,7 +76,6 @@ if __name__ == "__main__":
     s11 = load_pickle(os.path.join(__D_DIR, 'fd_data_gen_three_s11.pickle'))
     md = load_pickle(os.path.join(__D_DIR, 'metadata_gen_three.pickle'))
 
-
     # Get the scan IDs
     scan_ids = np.array([ii['id'] for ii in md])
 
