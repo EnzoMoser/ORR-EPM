@@ -67,6 +67,7 @@ __ADI_RADS = {
 if __name__ == "__main__":
 
     logger = get_script_logger(__file__)
+    ii = 0
 
     # Flags for doing DAS / DMAS / ORR reconstructions
     do_das = True
@@ -149,7 +150,6 @@ if __name__ == "__main__":
     adi_md_to_save = []
     fib_md_to_save = []
     
-    ii = 0
     # Get the frequency domain data and metadata of this experiment
     tar_fd = s11[ii, :, :]
     tar_md = md[ii]
@@ -176,6 +176,7 @@ if __name__ == "__main__":
         # Estimate the propagation speed in the imaging domain
         speed = estimate_speed(adi_rad=adi_rad,
                                ant_rho=ant_rad,
+                               m_size=__M_SIZE
                                )
 
         # Get the one-way propagation times for each pixel,
