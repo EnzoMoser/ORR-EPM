@@ -48,7 +48,7 @@ __FIN_F = 9e9
 __N_FS = 1001
 __SCAN_FS = np.linspace(__INI_F, __FIN_F, __N_FS)
 
-__M_SIZE = 150  # Number of pixels along 1-dimension for reconstruction
+__M_SIZE = 50  # Number of pixels along 1-dimension for reconstruction
 __ROI_RAD = 8  # ROI radius, in [cm]
 
 __C = 2.99792458e8
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     s11 = s11[:, tar_fs, :]  # Keep only target frequencies
     s11 = s11[:, ::12, :]  # Down-sample for computation benefit
 
-    n_expts = 1 #len(md)  # The number of scans to work on
+    n_expts = len(md)  # The number of scans to work on
 
     # Get the unique ID of each experiment / scan
     expt_ids = [mm['id'] for mm in md]
@@ -142,69 +142,6 @@ if __name__ == "__main__":
     fib_md_to_save = []
 
     for ii in range(n_expts):  # For each scan / experiment
-
-        # Save arrays every 20th image, in case of PC crash
-        if ii % 20 == 0:
-
-            # Save that DAS reconstruction to a .pickle file
-            save_pickle(all_das_adi,
-                        os.path.join(adi_o_dir,
-                                     'up_to_idx%d_das_adi.pickle' % ii))
-            save_pickle(all_das_fib,
-                        os.path.join(healthy_o_dir,
-                                     'up_to_idx%d_das_fib.pickle' % ii))
-
-             # Save DMAS images
-            save_pickle(all_dmas_adi,
-                        os.path.join(adi_o_dir,
-                                     'up_to_idx%d_dmas_adi.pickle' % ii))
-            save_pickle(all_dmas_fib,
-                        os.path.join(healthy_o_dir,
-                                     'up_to_idx%d_dmas_fib.pickle' % ii))
-
-            # Save that ORR reconstruction to a .pickle file
-            save_pickle(all_orr_adi,
-                        os.path.join(adi_o_dir,
-                                     'up_to_idx%d_orr_adi.pickle' % ii))
-            save_pickle(all_orr_fib,
-                        os.path.join(healthy_o_dir,
-                                     'up_to_idx%d_orr_fib.pickle' % ii))
-
-            # Delete the previously-saved .pickle to save disk space
-            if os.path.exists(
-                    os.path.join(adi_o_dir,
-                                 "up_to_idx%d_das_adi.pickle" % (ii - 20))):
-
-                # Remove the old file
-                os.remove(os.path.join(adi_o_dir,
-                                 "up_to_idx%d_das_adi.pickle" % (ii - 20)))
-                os.remove(os.path.join(adi_o_dir,
-                                       "up_to_idx%d_das_fib.pickle" % (
-                                                   ii - 20)))
-
-            # Delete the previously-saved DMAS files to save disk space
-            if os.path.exists(
-                    os.path.join(adi_o_dir,
-                                 "up_to_idx%d_dmas_adi.pickle" % (
-                                         ii - 20))):
-                os.remove(os.path.join(healthy_o_dir,
-                                       "up_to_idx%d_dmas_fib.pickle" % (
-                                                   ii - 20)))
-                os.remove(os.path.join(healthy_o_dir,
-                                       "up_to_idx%d_dmas_fib.pickle" % (
-                                                   ii - 20)))
-
-            # Delete the previously-saved ORR files to save disk space
-            if os.path.exists(
-                    os.path.join(adi_o_dir,
-                                 "up_to_idx%d_orr_adi.pickle" % (
-                                         ii - 20))):
-
-                os.remove(os.path.join(adi_o_dir,
-                                 "up_to_idx%d_orr_adi.pickle" % (ii - 20)))
-                os.remove(os.path.join(healthy_o_dir,
-                                       "up_to_idx%d_orr_fib.pickle" % (
-                                                   ii - 20)))
 
         logger.info('Scan [%3d / %3d]...' % (ii + 1, n_expts))
 
